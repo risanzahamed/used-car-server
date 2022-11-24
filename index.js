@@ -25,8 +25,6 @@ async function run() {
         const carCategories = client.db('usedCar').collection('carCategory')
         const carDetailsByCategory = client.db('usedCar').collection('carDetails')
 
-        // /category/${category._id}
-
         app.get('/car-category', async (req, res) => {
             const query = {}
             const cursor = carCategories.find(query);
@@ -36,17 +34,11 @@ async function run() {
 
         app.get('/car-category/:id', async(req, res)=>{
             const id = req.params.id
+            console.log(id);
             const query = {category_id : id}
             const cars = await carCategories.findOne(query)
             res.send(cars)
         })
-
-        // app.get('/car-category/:id', async(req, res)=>{
-        //     const id = req.params.id
-        //     const query = {_id : ObjectId(id)}
-        //     const result = await carCategories.filter(n => n.category_id == query)
-        //     res.send(result)
-        // })
 
         app.get('/car-details', async (req, res) => {
             const query = {}
@@ -55,23 +47,13 @@ async function run() {
             res.send(result);
         });
 
-        app.get('/car-details/:id', async(req, res)=>{
-
+        app.get('/category/:id', async(req, res)=>{
             const id = req.params.id
+            console.log(id);
             const query = {category_id : id}
-            const cars = await carDetailsByCategory.findOne(query)
+            const cars = await carDetailsByCategory.find(query).toArray()
             res.send(cars)
         })
-
-        // app.get('/category/:id', async(req, res)=>{
-        //     const id = req.body.category_id
-        //     const query = {category_id : ObjectId(id)}
-        //     const categoryCar = await carDetailsByCategory.find(query).toArray()
-        //     res.send(categoryCar)
-
-
-        // })
-
 
     }
     
