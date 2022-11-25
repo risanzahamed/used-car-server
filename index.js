@@ -23,7 +23,8 @@ async function run() {
     try {
 
         const carCategories = client.db('usedCar').collection('carCategory')
-        const carDetailsByCategory = client.db('usedCar').collection('carDetails')
+        const carDetailsByCategory = client.db('usedCar').collection('ourCarDetails')
+        const carBookingsCollection = client.db('usedCar').collection('carsBooking')
 
         app.get('/car-category', async (req, res) => {
             const query = {}
@@ -53,6 +54,33 @@ async function run() {
             const query = {category_id : id}
             const cars = await carDetailsByCategory.find(query).toArray()
             res.send(cars)
+        })
+
+        app.post('/car-bookings', async (req, res) => {
+            const carBooking = req.body
+
+            const query = {
+                buyerName: carBooking.buyerName,
+                email: carBooking.email,
+                phone: carBooking.phone,
+                image : carBooking.image,
+                category : carBooking.category,
+                model : carBooking.model,
+                price: carBooking.price,
+                location : carBooking.location
+            }
+
+            const result = await carBookingsCollection.insertOne(query)
+            res.send(result)
+        })
+
+        app.get('/car-bookings', async(req, res)=>{
+            const email = req.query.email
+            console.log(email);
+            const query = {email : email}
+            const carbookings = await carBookingsCollection.find(query).toArray()
+            res.send(carbookings)
+
         })
 
     }
