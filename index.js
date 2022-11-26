@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require("stripe")('sk_test_51M5vi0CWY41z4WgMopM8kLptLwMrIYX3nTjXoSUtZcOszbea8rPvyNSe1yvY6OL1OT9zky1wRLFDzjQ9OovAPh7Q00kgPLAKYg');
 const jwt = require('jsonwebtoken');
 const app = express()
 const port = process.env.PORT || 8000
@@ -68,7 +69,6 @@ async function run() {
 
         app.get('/car-category/:id', async (req, res) => {
             const id = req.params.id
-            console.log(id);
             const query = { category_id: id }
             const cars = await carCategories.findOne(query)
             res.send(cars)
@@ -83,7 +83,6 @@ async function run() {
 
         app.get('/category/:id', async (req, res) => {
             const id = req.params.id
-            console.log(id);
             const query = { category_id: id }
             const cars = await carDetailsByCategory.find(query).toArray()
             res.send(cars)
@@ -108,19 +107,27 @@ async function run() {
         })
 
 
-        app.get('/car-bookings',jwtVerify, async (req, res) => {
+        app.get('/car-bookings', jwtVerify, async (req, res) => {
             const email = req.query.email
             const decodedEmail = req.decoded.email
 
-            if(email != decodedEmail){
-                return res.status(403).send({message : 'unauthorized access data not found'})
+            if (email != decodedEmail) {
+                return res.status(403).send({ message: 'unauthorized access data not found' })
             }
-            console.log('token', req.headers.authorization);
-            console.log(email);
             const query = { email: email }
             const carbookings = await carBookingsCollection.find(query).toArray()
             res.send(carbookings)
 
+        })
+
+
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params.id
+
+            const query = { _id: ObjectId(id) }
+
+            const result = await carBookingsCollection.findOne(query)
+            res.send(result)
         })
 
 
@@ -145,54 +152,74 @@ async function run() {
 
         app.get('/flag-items', async (req, res) => {
             const email = req.query.email
-            console.log(email);
             const query = { email: email }
             const carbookings = await carflagedCollection.find(query).toArray()
             res.send(carbookings)
 
         })
 
-        app.get('/users', async(req, res)=>{
+        app.get('/users', async (req, res) => {
             const query = {}
             const result = await usersCollection.find(query).toArray()
             res.send(result)
         })
 
-        app.post('/users', async(req, res)=>{
+        app.post('/users', async (req, res) => {
             const user = req.body
             const result = await usersCollection.insertOne(user)
             res.send(result)
         })
 
-        app.get('/users/admin/:email', async(req,res)=>{
+        app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email
             const query = { email }
             const user = await usersCollection.findOne(query)
-            res.send({isAdmin : user?.role === 'admin'})
+            res.send({ isAdmin: user?.role === 'admin' })
         })
 
 
-        app.put('/users/admin/:id', jwtVerify, async(req, res)=>{
+        app.put('/users/admin/:id', jwtVerify, async (req, res) => {
             const decodedEmail = req.decoded.email
-            const query = {email : decodedEmail}
+            const query = { email: decodedEmail }
             const user = await usersCollection.findOne(query)
-            
-            if(user.role !== 'admin'){
-                return res.status(403).send({message: 'forbidden access'})
+
+            if (user.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
             }
 
 
             const id = req.params.id
-            const filter = {_id : ObjectId(id)}
+            const filter = { _id: ObjectId(id) }
             const options = { upsert: true };
             const updatedDoc = {
-                $set:{
-                    role : "admin"
+                $set: {
+                    role: "admin"
                 }
             }
             const result = await usersCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
         })
+
+
+
+
+        app.post("/create-payment-intent", async (req, res) => {
+            const carbooking = req.body;
+            const price = carbooking.price
+            const amount = price * 100
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                "payment_method_types": [
+                    "card"
+                ],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
 
 
 
