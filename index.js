@@ -43,7 +43,7 @@ async function run() {
     try {
 
         const carCategories = client.db('usedCar').collection('carCategory')
-        const carDetailsByCategory = client.db('usedCar').collection('ourCarDetails')
+        const carDetailsByCategory = client.db('usedCar').collection('ourcardd')
         const carBookingsCollection = client.db('usedCar').collection('carsBooking')
         const carflagedCollection = client.db('usedCar').collection('flagedItems')
         const usersCollection = client.db('usedCar').collection('users')
@@ -250,6 +250,7 @@ async function run() {
             const advertise = req.body
 
             const query = {
+                sellerName:advertise.sellerName,
                 image: advertise.image,
                 model: advertise.model,
                 category: advertise.name,
