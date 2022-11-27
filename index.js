@@ -1,7 +1,8 @@
 const express = require('express')
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const stripe = require("stripe")('sk_test_51M5vi0CWY41z4WgMopM8kLptLwMrIYX3nTjXoSUtZcOszbea8rPvyNSe1yvY6OL1OT9zky1wRLFDzjQ9OovAPh7Q00kgPLAKYg');
+const stripe = require("stripe")(process.env.STRIPE_KEY);
+
 const jwt = require('jsonwebtoken');
 const app = express()
 const port = process.env.PORT || 8000
@@ -46,6 +47,7 @@ async function run() {
         const carBookingsCollection = client.db('usedCar').collection('carsBooking')
         const carflagedCollection = client.db('usedCar').collection('flagedItems')
         const usersCollection = client.db('usedCar').collection('users')
+        const sellerCollection = client.db('usedCar').collection('seller')
         const addProductCollection = client.db('usedCar').collection('addProduct')
         const advertiseCollection = client.db('usedCar').collection('advertiseItem')
 
@@ -226,6 +228,8 @@ async function run() {
             });
         });
 
+        
+
         app.post('/add-product', async(req, res)=>{
             const product = req.body
             const result = await addProductCollection.insertOne(product)
@@ -269,6 +273,21 @@ async function run() {
         })
 
 
+        // customer api 
+
+        app.post('/seller', async (req, res) => {
+            const user = req.body
+            const result = await sellerCollection.insertOne(user)
+            res.send(result)
+        })
+
+
+        app.get('/users/seller/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email }
+            const user = await sellerCollection.findOne(query)
+            res.send({ isSeller: user?.seller === 'seller' })
+        })
     }
 
     finally {
