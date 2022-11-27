@@ -32,8 +32,10 @@ function jwtVerify(req, res, next) {
 
 }
 
-const uri = "mongodb+srv://used-car:6nJgwg4Mee5MlOax@cluster0.h3zxwhp.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h3zxwhp.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+console.log(uri);
 
 async function run() {
 
@@ -44,6 +46,8 @@ async function run() {
         const carBookingsCollection = client.db('usedCar').collection('carsBooking')
         const carflagedCollection = client.db('usedCar').collection('flagedItems')
         const usersCollection = client.db('usedCar').collection('users')
+        const addProductCollection = client.db('usedCar').collection('addProduct')
+        const advertiseCollection = client.db('usedCar').collection('advertiseItem')
 
 
         // JWT CODE
@@ -150,6 +154,7 @@ async function run() {
             res.send(result)
         })
 
+
         app.get('/flag-items', async (req, res) => {
             const email = req.query.email
             const query = { email: email }
@@ -221,6 +226,47 @@ async function run() {
             });
         });
 
+        app.post('/add-product', async(req, res)=>{
+            const product = req.body
+            const result = await addProductCollection.insertOne(product)
+            res.send(result)
+        })
+
+        app.get('/add-product', async(req, res)=>{
+            const query = {}
+            const result = await addProductCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+
+        app.put('/advertise', async (req, res) => {
+            const advertise = req.body
+
+            const query = {
+                image: advertise.image,
+                model: advertise.model,
+                category: advertise.name,
+                description: advertise.description,
+                resalePrice: advertise.sellingPrice,
+                originalPrice: advertise.originalPrice,
+                postDate: advertise.postDate,
+                yearsOfUse: advertise.yearsOfUse,
+                location: advertise.location,
+            }
+
+            const result = await advertiseCollection.insertOne(query)
+            res.send(result)
+        })
+
+
+        app.get('/advertise', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
+            const carbookings = await advertiseCollection.find(query).toArray()
+            res.send(carbookings)
+
+        })
 
 
     }
