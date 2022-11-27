@@ -48,6 +48,8 @@ async function run() {
         const carflagedCollection = client.db('usedCar').collection('flagedItems')
         const usersCollection = client.db('usedCar').collection('users')
         const sellerCollection = client.db('usedCar').collection('seller')
+        const customerCollection = client.db('usedCar').collection('customer')
+
         const addProductCollection = client.db('usedCar').collection('addProduct')
         const advertiseCollection = client.db('usedCar').collection('advertiseItem')
 
@@ -273,7 +275,7 @@ async function run() {
         })
 
 
-        // customer api 
+        // Seller api 
 
         app.post('/seller', async (req, res) => {
             const user = req.body
@@ -288,6 +290,41 @@ async function run() {
             const user = await sellerCollection.findOne(query)
             res.send({ isSeller: user?.seller === 'seller' })
         })
+
+
+        app.get('/user/seller', async(req, res)=>{
+            const query = {}
+            const result = await sellerCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+        // Custommer/ Buyer Api
+
+        app.post('/customer', async (req, res) => {
+            const user = req.body
+            const result = await customerCollection.insertOne(user)
+            res.send(result)
+        })
+
+
+        app.get('/users/customer/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email }
+            const user = await customerCollection.findOne(query)
+            res.send({ isCustomer: user?.customer === 'customer' })
+        })
+
+
+        app.get('/user/customer', async(req, res)=>{
+            const query = {}
+            const result = await customerCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+
+
     }
 
     finally {
