@@ -230,16 +230,24 @@ async function run() {
             });
         });
 
-        
 
-        app.post('/add-product', async(req, res)=>{
+
+        app.post('/add-product', async (req, res) => {
             const product = req.body
             const result = await addProductCollection.insertOne(product)
             res.send(result)
         })
 
-        app.get('/add-product', async(req, res)=>{
-            const query = {}
+        app.get('/add-product', jwtVerify, async (req, res) => {
+            const email = req.query.email
+            const decodedEmail = req.decoded.email
+
+            if (email != decodedEmail) {
+                return res.status(403).send({ message: 'unauthorized access data not found' })
+            }
+
+            const query = { email: email }
+
             const result = await addProductCollection.find(query).toArray()
             res.send(result)
         })
@@ -250,7 +258,7 @@ async function run() {
             const advertise = req.body
 
             const query = {
-                sellerName:advertise.sellerName,
+                sellerName: advertise.sellerName,
                 image: advertise.image,
                 model: advertise.model,
                 category: advertise.name,
@@ -293,7 +301,7 @@ async function run() {
         })
 
 
-        app.get('/user/seller', async(req, res)=>{
+        app.get('/user/seller', async (req, res) => {
             const query = {}
             const result = await sellerCollection.find(query).toArray()
             res.send(result)
@@ -317,7 +325,7 @@ async function run() {
         })
 
 
-        app.get('/user/customer', async(req, res)=>{
+        app.get('/user/customer', async (req, res) => {
             const query = {}
             const result = await customerCollection.find(query).toArray()
             res.send(result)
