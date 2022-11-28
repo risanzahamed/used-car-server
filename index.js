@@ -49,9 +49,27 @@ async function run() {
         const usersCollection = client.db('usedCar').collection('users')
         const sellerCollection = client.db('usedCar').collection('seller')
         const customerCollection = client.db('usedCar').collection('customer')
+        const paymentCollection = client.db('usedCar').collection('payment')
 
         const addProductCollection = client.db('usedCar').collection('addProduct')
         const advertiseCollection = client.db('usedCar').collection('advertiseItem')
+
+        // payment
+
+        app.post('/payment', async(req, res)=>{
+            const payment = req.body
+            const result = paymentCollection.insertOne(payment)
+            const _id = payment.bookingId
+            const filter = {_id : ObjectId(_id)}
+            const updatedDoc = {
+                $set:{
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedResult = await carBookingsCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
 
 
         // JWT CODE
